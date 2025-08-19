@@ -102,7 +102,7 @@ if uploaded_file:
             return Chroma.from_documents(
                 documents=_docs,
                 embedding=_embedding_func,
-                persist_directory="my_chroma_db",
+                persist_directory=None,
                 collection_name="chatbot"
             )
         else:  # otherwise just load from disk
