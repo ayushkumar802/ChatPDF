@@ -96,18 +96,21 @@ if uploaded_file:
     
     embedding_func = load_embeddings()
 
+
+
     @st.cache_resource
     def load_vector_store(_docs, _embedding_func):
+        persist_dir = tempfile.mkdtemp()
         if _docs:  # if new docs are uploaded, rebuild
             return Chroma.from_documents(
                 documents=_docs,
                 embedding=_embedding_func,
-                persist_directory=None,
+                persist_directory=persist_dir,
                 collection_name="chatbot"
             )
         else:  # otherwise just load from disk
             return Chroma(
-                persist_directory="my_chroma_db",
+                persist_directory=persist_dir,
                 embedding_function=_embedding_func,
                 collection_name="chatbot"
             )
