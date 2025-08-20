@@ -35,9 +35,8 @@ st.sidebar.write("Upload a PDF or TXT file, and ask questions about it!")
 uploaded_file = st.sidebar.file_uploader("Upload your file", type=["txt", "pdf"],key="upload_file")
 
 
-    
-
 if uploaded_file:
+
     # Reset when a new file is uploaded
     if "last_uploaded" not in st.session_state or st.session_state["last_uploaded"] != uploaded_file.name:
         st.session_state["messages"] = []
@@ -45,26 +44,34 @@ if uploaded_file:
         st.session_state["last_uploaded"] = uploaded_file.name
 
     if uploaded_file.type == "text/plain":
-        # Save uploaded TXT to a temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as tmp_file:
             tmp_file.write(uploaded_file.read())
             tmp_file_path = tmp_file.name
-        
         loader = TextLoader(tmp_file_path)
 
     elif uploaded_file.type == "application/pdf":
-        # Save uploaded PDF to a temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             tmp_file.write(uploaded_file.read())
             tmp_file_path = tmp_file.name
-        
         loader = PyPDFLoader(tmp_file_path)
 
-
-    
     docs = loader.load()
     st.sidebar.write("Documents loaded successfully!")
 
+    # --- clean and split text ---
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=400,
+        chunk_overlap=50
+    )
+
+    texts = []
+    for d in docs:
+        cleaned = clean_str(d.page_content)
+        texts.extend(splitter.split_text(cleaned))
+
+    docs = [Document(page_content=text) for text in texts]
+  
+#------------------------------
 
     key_token = st.sidebar.text_input("Hugging Face Token!",placeholder='enter your token')
     if key_token:
@@ -86,24 +93,6 @@ if uploaded_file:
         # Collapse multiple spaces
         return " ".join(cleaned.split())
 
-    
-    texts = []
-    for d in docs:
-        cleaned = clean_str(d.page_content)
-        texts.extend(splitter.split_text(cleaned))
-
-    docs = clean_str(text)
-
-        
-
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=400,
-        chunk_overlap=50   # list is valid here
-    )
-
-    texts = splitter.split_text(docs)
-
-    docs = [Document(page_content=text) for text in texts]
 
 
     @st.cache_resource
