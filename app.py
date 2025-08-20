@@ -67,12 +67,12 @@ if uploaded_file:
 
     def clean_str(text: str) -> str:
     # Allowed punctuation
-    allowed_punctuations = ".,?()[]{}*%"
-    allowed = string.ascii_letters + string.digits + string.whitespace + allowed_punctuations
-    table = str.maketrans("", "", "".join(set(map(chr, range(0x110000))) - set(allowed)))
-    cleaned = text.translate(table)
-    # Collapse multiple spaces
-    return " ".join(cleaned.split())
+        allowed_punctuations = ".,?()[]{}*%"
+        allowed = string.ascii_letters + string.digits + string.whitespace + allowed_punctuations
+        table = str.maketrans("", "", "".join(set(map(chr, range(0x110000))) - set(allowed)))
+        cleaned = text.translate(table)
+        # Collapse multiple spaces
+        return " ".join(cleaned.split())
     
 
     texts = []
