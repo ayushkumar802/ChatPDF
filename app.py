@@ -37,10 +37,15 @@ uploaded_file = st.sidebar.file_uploader("Upload your file", type=["txt", "pdf"]
 
     
 
-
 if uploaded_file:
     if uploaded_file.type == "text/plain":
-        loader = TextLoader(uploaded_file)
+        # Save uploaded TXT to a temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as tmp_file:
+            tmp_file.write(uploaded_file.read())
+            tmp_file_path = tmp_file.name
+        
+        loader = TextLoader(tmp_file_path)
+
     elif uploaded_file.type == "application/pdf":
         # Save uploaded PDF to a temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
@@ -48,6 +53,10 @@ if uploaded_file:
             tmp_file_path = tmp_file.name
         
         loader = PyPDFLoader(tmp_file_path)
+
+    if "chat_objects" in st.session_state:
+        st.session_state["chat_objects"] = []
+
     
     docs = loader.load()
     st.sidebar.write("Documents loaded successfully!")
