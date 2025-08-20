@@ -64,6 +64,17 @@ if uploaded_file:
         chunk_overlap=50
     )
 
+
+    def clean_str(text: str) -> str:
+    # Allowed punctuation
+    allowed_punctuations = ".,?()[]{}*%"
+    allowed = string.ascii_letters + string.digits + string.whitespace + allowed_punctuations
+    table = str.maketrans("", "", "".join(set(map(chr, range(0x110000))) - set(allowed)))
+    cleaned = text.translate(table)
+    # Collapse multiple spaces
+    return " ".join(cleaned.split())
+    
+
     texts = []
     for d in docs:
         cleaned = clean_str(d.page_content)
@@ -82,16 +93,6 @@ if uploaded_file:
         except ValueError:
             st.sidebar.error("Invalid Input: Token is incorrect or expired.")
 
-
-
-    def clean_str(text: str) -> str:
-        # Allowed punctuation
-        allowed_punctuations = ".,?()[]{}*%"
-        allowed = string.ascii_letters + string.digits + string.whitespace + allowed_punctuations
-        table = str.maketrans("", "", "".join(set(map(chr, range(0x110000))) - set(allowed)))
-        cleaned = text.translate(table)
-        # Collapse multiple spaces
-        return " ".join(cleaned.split())
 
 
 
