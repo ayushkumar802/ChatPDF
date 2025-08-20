@@ -177,6 +177,14 @@ if uploaded_file:
 
 
 st.title("Chatbot 🤖")
+import streamlit as st
+
+# Initialize session state for messages
+if "messages" not in st.session_state:
+    st.session_state["messages"] = []
+if "chat_object" not in st.session_state:
+    st.session_state["chat_objects"] = []
+
 
 
 
