@@ -87,7 +87,10 @@ if uploaded_file:
         return " ".join(cleaned.split())
 
     
-    text = " ".join([i.page_content for i in docs])
+    texts = []
+    for d in docs:
+        cleaned = clean_str(d.page_content)
+        texts.extend(splitter.split_text(cleaned))
 
     docs = clean_str(text)
 
