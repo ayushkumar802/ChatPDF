@@ -38,6 +38,12 @@ uploaded_file = st.sidebar.file_uploader("Upload your file", type=["txt", "pdf"]
     
 
 if uploaded_file:
+    # Reset when a new file is uploaded
+    if "last_uploaded" not in st.session_state or st.session_state["last_uploaded"] != uploaded_file.name:
+        st.session_state["messages"] = []
+        st.session_state["chat_objects"] = []
+        st.session_state["last_uploaded"] = uploaded_file.name
+
     if uploaded_file.type == "text/plain":
         # Save uploaded TXT to a temp file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".txt") as tmp_file:
@@ -54,8 +60,6 @@ if uploaded_file:
         
         loader = PyPDFLoader(tmp_file_path)
 
-    if "chat_objects" in st.session_state:
-        st.session_state["chat_objects"] = []
 
     
     docs = loader.load()
@@ -161,11 +165,9 @@ if uploaded_file:
 
 
 
-    chat_objects = []
-
     prompt = ChatPromptTemplate([
-        ("system","You're a AI assistent that answers user's question from given context, you can create your language to make user undertsand his doubt. If the question is out of question, just say question is out of Topic, and also you can resposed to user's general messages like Hi, how are you CONTEXT:- {context}"),
-        *chat_objects,
+        ("system","You're a AI assistent that answers user's question from given context, you can create your language to make user undertsand his doubt. If the question is out of question, just say question is out of Topic, and also you can resposed to user's general messages like Hi, how are you FILE's CONTEXT:- {context}"),
+        *st.session_state["chat_objects"],
         ("human","{question}") 
     ])
 
@@ -183,11 +185,6 @@ if uploaded_file:
 
 
 st.title("Chatbot 🤖")
-
-if "messages" not in st.session_state:
-    st.session_state["messages"] = []
-if "chat_objects" not in st.session_state:
-    st.session_state["chat_objects"] = []
 
 
 
