@@ -47,23 +47,16 @@ if uploaded_file:
         st.session_state["messages"] = []
         st.session_state["chat_objects"] = []
         st.session_state["last_uploaded"] = uploaded_file.name
+        st.session_state["retriever"] = None  # reset retriever as well
 
     # Save uploaded file temporarily
-    if uploaded_file.type == "text/plain":
-        suffix = ".txt"
-    else:
-        suffix = ".pdf"
-
+    suffix = ".txt" if uploaded_file.type == "text/plain" else ".pdf"
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
         tmp_file.write(uploaded_file.read())
         tmp_file_path = tmp_file.name
 
     # Load documents
-    if uploaded_file.type == "text/plain":
-        loader = TextLoader(tmp_file_path)
-    else:
-        loader = PyPDFLoader(tmp_file_path)
-
+    loader = TextLoader(tmp_file_path) if uploaded_file.type == "text/plain" else PyPDFLoader(tmp_file_path)
     docs = loader.load()
     st.sidebar.success("✅ Document loaded successfully!")
 
@@ -84,20 +77,19 @@ if uploaded_file:
 
     docs = [Document(page_content=text) for text in texts]
 
-    # ------------------- Embeddings + Vector Store -------------------
+    # ------------------- Embeddings (cached) -------------------
     @st.cache_resource
     def load_embeddings():
         return HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
     embedding_func = load_embeddings()
 
-    @st.cache_resource
-    def load_vector_store(_docs, _embedding_func):
-        if _docs:
-            return FAISS.from_documents(_docs, _embedding_func)
-        return None
+    # ------------------- Vector Store (NOT cached) -------------------
+    if st.session_state.get("retriever") is None:
+        vector_store = FAISS.from_documents(docs, embedding_func)
+        st.session_state["retriever"] = vector_store.as_retriever()
 
-    retriever = load_vector_store(docs, embedding_func).as_retriever()
+    retriever = st.session_state["retriever"]
 
     def text_extractor(docs):
         return " ".join(doc.page_content for doc in docs)
